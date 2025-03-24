@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3>Complete Your Profile</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('complete_profile') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="full_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Security Question</label>
+                            <select class="form-select" name="security_question">
+                                <option>What was your first pet's name?</option>
+                                <option>What city were you born in?</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Answer</label>
+                            <input type="text" class="form-control" name="security_answer" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Complete Setup</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

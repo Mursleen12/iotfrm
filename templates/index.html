@@ -6,15 +6,35 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-6">
-                <h1 class="display-4 fw-bold">Welcome to IoT Firmware Analysis</h1>
+                <h1 class="display-4 fw-bold">
+                    {% if current_user.is_authenticated %}
+                    Welcome back, {{ current_user.name }}!
+                    {% else %}
+                    Welcome to IoT Firmware Analysis
+                    {% endif %}
+                </h1>
                 <p class="lead">
-                    This project helps you analyze firmware from IoT devices to identify vulnerabilities and enhance security.
-                    Upload your firmware file, and our tool will scan it for potential threats.
+                    {% if current_user.is_authenticated %}
+                    Ready to scan your next IoT firmware for vulnerabilities?
+                    {% else %}
+                    Advanced security scanning for IoT device firmware - identify vulnerabilities before they become threats.
+                    {% endif %}
                 </p>
-                <a href="#upload-section" class="btn btn-primary btn-lg">Get Started</a>
+                {% if current_user.is_authenticated %}
+                <a href="#upload-section" class="btn btn-success btn-lg me-2">
+                    <i class="fas fa-upload me-1"></i> Upload Firmware
+                </a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg me-2">
+                    <i class="fas fa-sign-in-alt me-1"></i> Login
+                </a>
+                <a href="{{ url_for('signup') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-user-plus me-1"></i> Sign Up
+                </a>
+                {% endif %}
             </div>
             <div class="col-md-6">
-                <img src="{{ url_for('static', filename='images/iot.png') }}" alt="IoT Image" class="img-fluid animate__animated animate__fadeInRight">
+                <img src="{{ url_for('static', filename='images/iot-security.png') }}" alt="IoT Security" class="img-fluid rounded shadow">
             </div>
         </div>
     </div>
@@ -24,31 +44,43 @@
 <section class="features-section py-5">
     <div class="container">
         <h2 class="text-center mb-5">Key Features</h2>
-        <div class="row">
-            <div class="col-md-4 text-center">
-                <div class="card h-100 shadow">
-                    <div class="card-body">
-                        <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
-                        <h5 class="card-title">Vulnerability Detection</h5>
-                        <p class="card-text">Identify security vulnerabilities in IoT firmware with advanced scanning techniques.</p>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary bg-gradient rounded-circle p-3 mb-3 mx-auto">
+                            <i class="fas fa-shield-alt fa-2x text-white"></i>
+                        </div>
+                        <h4 class="card-title">Vulnerability Detection</h4>
+                        <p class="card-text">
+                            Identify critical security flaws in firmware binaries using advanced static and dynamic analysis techniques.
+                        </p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="card h-100 shadow">
-                    <div class="card-body">
-                        <i class="fas fa-file-upload fa-3x text-success mb-3"></i>
-                        <h5 class="card-title">Easy Upload</h5>
-                        <p class="card-text">Upload your firmware file effortlessly and get results in minutes.</p>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-success bg-gradient rounded-circle p-3 mb-3 mx-auto">
+                            <i class="fas fa-bug fa-2x text-white"></i>
+                        </div>
+                        <h4 class="card-title">Exploit Identification</h4>
+                        <p class="card-text">
+                            Detect potential exploit vectors including buffer overflows, hardcoded credentials, and insecure APIs.
+                        </p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="card h-100 shadow">
-                    <div class="card-body">
-                        <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
-                        <h5 class="card-title">Detailed Reports</h5>
-                        <p class="card-text">Receive comprehensive reports with actionable insights.</p>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-info bg-gradient rounded-circle p-3 mb-3 mx-auto">
+                            <i class="fas fa-file-alt fa-2x text-white"></i>
+                        </div>
+                        <h4 class="card-title">Detailed Reports</h4>
+                        <p class="card-text">
+                            Receive comprehensive PDF reports with risk assessments and remediation recommendations.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -59,52 +91,96 @@
 <!-- How It Works Section -->
 <section class="how-it-works-section bg-light py-5">
     <div class="container">
-        <h2 class="text-center mb-5">How It Works</h2>
-        <div class="row">
-            <div class="col-md-4 text-center">
-                <div class="step">
-                    <span class="step-number">1</span>
-                    <h5>Upload Firmware</h5>
-                    <p>Upload your IoT device firmware file securely.</p>
+        <h2 class="text-center mb-5">How Our Firmware Analysis Works</h2>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="step-number bg-primary text-white rounded-circle mb-3">1</div>
+                        <h4 class="mb-3">Upload Firmware</h4>
+                        <p class="mb-0">
+                            Simply upload your IoT device firmware file in common formats like .bin, .hex, or .img.
+                            Our system supports various architectures including ARM, MIPS, and x86.
+                        </p>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="step">
-                    <span class="step-number">2</span>
-                    <h5>Analyze</h5>
-                    <p>Our tool scans the firmware for vulnerabilities.</p>
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="step-number bg-success text-white rounded-circle mb-3">2</div>
+                        <h4 class="mb-3">Automated Analysis</h4>
+                        <p class="mb-0">
+                            Our engine performs multiple analysis passes including:
+                            <ul class="text-start">
+                                <li>Binary pattern matching</li>
+                                <li>Vulnerability signature scanning</li>
+                                <li>Memory corruption detection</li>
+                            </ul>
+                        </p>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="step">
-                    <span class="step-number">3</span>
-                    <h5>Get Results</h5>
-                    <p>View detailed reports and recommendations.</p>
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="step-number bg-info text-white rounded-circle mb-3">3</div>
+                        <h4 class="mb-3">Get Results</h4>
+                        <p class="mb-0">
+                            Receive a detailed vulnerability report with:
+                            <ul class="text-start">
+                                <li>CVSS risk scoring</li>
+                                <li>Affected components</li>
+                                <li>Remediation guidance</li>
+                                <li>Exploitability assessment</li>
+                            </ul>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Upload Section -->
+<!-- Upload Section (for authenticated users) -->
+{% if current_user.is_authenticated %}
 <section id="upload-section" class="upload-section py-5">
     <div class="container">
-        <h2 class="text-center mb-5">Upload Firmware</h2>
+        <h2 class="text-center mb-5">Upload Firmware for Analysis</h2>
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-lg border-0">
-                    <div class="card-header bg-gradient-success text-white">
-                        <h3 class="card-title text-center">Upload Firmware</h3>
+            <div class="col-lg-8">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-microchip me-2"></i> Firmware Analysis Portal
+                        </h3>
                     </div>
-                    <div class="card-body">
-                        <form method="POST" action="/upload" enctype="multipart/form-data">
+                    <div class="card-body p-4">
+                        <form method="POST" action="{{ url_for('upload_file') }}" enctype="multipart/form-data" class="needs-validation" novalidate>
                             <div class="mb-4">
-                                <label for="file" class="form-label">Choose Firmware File</label>
-                                <input type="file" class="form-control" id="file" name="file" required>
+                                <label for="firmwareFile" class="form-label">Select Firmware File</label>
+                                <input class="form-control form-control-lg" type="file" id="firmwareFile" name="file" required>
+                                <div class="invalid-feedback">
+                                    Please select a firmware file to analyze.
+                                </div>
+                                <div class="form-text">
+                                    Supported formats: .bin, .hex, .img, .elf (Max 500MB)
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="deviceType" class="form-label">Device Type (Optional)</label>
+                                <select class="form-select" id="deviceType" name="device_type">
+                                    <option selected>Select device type...</option>
+                                    <option>Router</option>
+                                    <option>IP Camera</option>
+                                    <option>Smart Home Device</option>
+                                    <option>Industrial Controller</option>
+                                    <option>Other</option>
+                                </select>
                             </div>
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-lg btn-success btn-gradient">
-                                    <i class="fas fa-upload me-2"></i>Upload and Analyze
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-search me-2"></i> Analyze Firmware
                                 </button>
                             </div>
                         </form>
@@ -114,22 +190,157 @@
         </div>
     </div>
 </section>
+{% endif %}
 
 <!-- About Us Section -->
-<section class="about-us-section py-5">
+<section class="about-us-section py-5 bg-dark text-white">
     <div class="container">
-        <h2 class="text-center mb-5">About Us</h2>
-        <div class="row">
-            <div class="col-md-6">
-                <img src="{{ url_for('static', filename='images/about-us.jpg') }}" alt="About Us" class="img-fluid rounded">
+        <h2 class="text-center mb-5">About Our Security Team</h2>
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <img src="{{ url_for('static', filename='images/security-team.jpg') }}" alt="Our Security Team" class="img-fluid rounded shadow-lg">
             </div>
-            <div class="col-md-6">
-                <h3>Who We Are</h3>
-                <p>We are a team of cybersecurity experts dedicated to making IoT devices safer. Our mission is to provide tools that help identify and mitigate vulnerabilities in IoT firmware.</p>
-                <h3>Our Mission</h3>
-                <p>To empower developers and organizations to secure their IoT devices by providing advanced firmware analysis tools.</p>
+            <div class="col-lg-6">
+                <h3 class="mb-4">Our Expertise</h3>
+                <p class="lead">
+                    We are a team of cybersecurity researchers specializing in IoT device security with over 15 years of combined experience.
+                </p>
+                <p>
+                    Our members have discovered critical vulnerabilities in devices from major manufacturers and contributed to industry security standards.
+                </p>
+                
+                <h3 class="mt-5 mb-4">Why Choose Us?</h3>
+                <div class="d-flex mb-3">
+                    <div class="me-4 text-primary">
+                        <i class="fas fa-certificate fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Certified Professionals</h5>
+                        <p class="mb-0">OSCP, CISSP, and IoT-specific security certifications</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-3">
+                    <div class="me-4 text-primary">
+                        <i class="fas fa-project-diagram fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Comprehensive Approach</h5>
+                        <p class="mb-0">Combining static, dynamic, and manual analysis techniques</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex">
+                    <div class="me-4 text-primary">
+                        <i class="fas fa-lock fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Confidentiality Guaranteed</h5>
+                        <p class="mb-0">All analysis performed in secure, isolated environments</p>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials-section py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">What Our Clients Say</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="mb-3 text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="card-text mb-4">
+                            "Found critical vulnerabilities in our smart home devices that other tools missed. The detailed report helped us patch before production."
+                        </p>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ url_for('static', filename='images/client1.jpg') }}" class="rounded-circle me-3" width="50" alt="Client">
+                            <div>
+                                <h6 class="mb-0">Sarah Johnson</h6>
+                                <small class="text-muted">CTO, SmartHome Inc.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="mb-3 text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="card-text mb-4">
+                            "The automated analysis saved us weeks of manual work. The team provided excellent support interpreting the results."
+                        </p>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ url_for('static', filename='images/client2.jpg') }}" class="rounded-circle me-3" width="50" alt="Client">
+                            <div>
+                                <h6 class="mb-0">Michael Chen</h6>
+                                <small class="text-muted">Security Lead, IoTech</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="mb-3 text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <p class="card-text mb-4">
+                            "Comprehensive vulnerability assessment helped us meet compliance requirements for our medical IoT devices."
+                        </p>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ url_for('static', filename='images/client3.jpg') }}" class="rounded-circle me-3" width="50" alt="Client">
+                            <div>
+                                <h6 class="mb-0">Dr. Emily Rodriguez</h6>
+                                <small class="text-muted">Director, MedTech Security</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta-section py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Secure Your IoT Devices?</h2>
+        <p class="lead mb-5">
+            Join hundreds of companies who trust our firmware analysis platform
+        </p>
+        {% if current_user.is_authenticated %}
+        <a href="#upload-section" class="btn btn-light btn-lg px-4 me-2">
+            <i class="fas fa-upload me-1"></i> Upload Firmware Now
+        </a>
+        {% else %}
+        <a href="{{ url_for('signup') }}" class="btn btn-light btn-lg px-4 me-2">
+            <i class="fas fa-user-plus me-1"></i> Create Free Account
+        </a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg px-4">
+            <i class="fas fa-sign-in-alt me-1"></i> Login
+        </a>
+        {% endif %}
     </div>
 </section>
 {% endblock %}
