@@ -1,0 +1,52 @@
+/* Custom Styles */
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0;
+}
+
+.list-group-item {
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.navbar {
+    border-radius: 0;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border: none;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    border: none;
+}
+
+/* Login Page Styles */
+.min-vh-100 {
+    min-height: 100vh;
+}
+
+/* Intro Section Styles */
+.display-4 {
+    font-weight: bold;
+}
+
+.lead {
+    font-size: 1.25rem;
+    color: #6c757d;
+}
