@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Analysis Status</h1>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">{{ analysis.filename }}</h5>
+            <p class="card-text">
+                Status: <span class="badge badge-{{ 'success' if analysis.analysis_status == 'completed' else 'warning' if analysis.analysis_status == 'processing' else 'danger' }}">
+                    {{ analysis.analysis_status }}
+                </span>
+            </p>
+            <p class="card-text">Uploaded: {{ analysis.upload_date.strftime('%Y-%m-%d %H:%M') }}</p>
+            
+            {% if analysis.analysis_status == 'completed' %}
+                <a href="{{ url_for('analysis.results', analysis_id=analysis.id) }}" class="btn btn-primary">View Results</a>
+            {% elif analysis.analysis_status == 'failed' %}
+                <div class="alert alert-danger">
+                    {% if analysis.findings %}
+                        {{ analysis.findings }}
+                    {% else %}
+                        Analysis failed. Please try again.
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('main.upload_file') }}" class="btn btn-warning">Try Again</a>
+            {% else %}
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <p>Analysis in progress...</p>
+                <meta http-equiv="refresh" content="5">
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

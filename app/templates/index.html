@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="jumbotron">
+        <h1 class="display-4">IoT Firmware Analysis Tool</h1>
+        <p class="lead">Upload and analyze firmware images for security vulnerabilities.</p>
+        <hr class="my-4">
+        {% if current_user.is_authenticated %}
+            <p>Welcome back, {{ current_user.full_name or current_user.username }}!</p>
+            <a class="btn btn-primary btn-lg" href="{{ url_for('main.upload_file') }}" role="button">Upload Firmware</a>
+            
+            <h3 class="mt-5">Your Recent Analyses</h3>
+            {% if analyses %}
+                <div class="list-group">
+                    {% for analysis in analyses %}
+                    <a href="{{ url_for('analysis.results', analysis_id=analysis.id) }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ analysis.filename }}</h5>
+                            <small>{{ analysis.upload_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        <p class="mb-1">
+                            Status: <span class="badge badge-{{ 'success' if analysis.analysis_status == 'completed' else 'warning' if analysis.analysis_status == 'pending' else 'danger' }}">
+                                {{ analysis.analysis_status }}
+                            </span>
+                            {% if analysis.risk_score %}
+                                | Risk Score: <span class="badge badge-{{ 'danger' if analysis.risk_score > 70 else 'warning' if analysis.risk_score > 30 else 'success' }}">
+                                    {{ analysis.risk_score }}
+                                </span>
+                            {% endif %}
+                        </p>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>You haven't uploaded any firmware yet.</p>
+            {% endif %}
+        {% else %}
+            <p>Please login or sign up to analyze firmware images.</p>
+            <a class="btn btn-primary btn-lg mr-2" href="{{ url_for('auth.login') }}" role="button">Login</a>
+            <a class="btn btn-secondary btn-lg" href="{{ url_for('auth.signup') }}" role="button">Sign Up</a>
+        {% endif %}
+    </div>
+{% endblock %}
