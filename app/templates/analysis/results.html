@@ -1,210 +1,249 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<style>
+    .vulnerability-item {
+        transition: all 0.2s ease;
+    }
+    .vulnerability-item:hover {
+        transform: translateX(5px);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <h1>Firmware Analysis Results</h1>
-    
-    <!-- Summary Card -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Analysis Summary</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>Filename:</strong> {{ analysis.filename }}</p>
-                    <p><strong>Upload Date:</strong> {{ analysis.upload_date.strftime('%Y-%m-%d %H:%M') }}</p>
-                    <p><strong>Analysis Date:</strong> {{ analysis.analysis_date.strftime('%Y-%m-%d %H:%M') }}</p>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card card-dark mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Analysis Results</h3>
+                    <span class="badge bg-{{ 'danger' if analysis.risk_score > 70 else 'warning' if analysis.risk_score > 40 else 'success' }}">
+                        Risk Score: {{ analysis.risk_score }}/100
+                    </span>
                 </div>
-                <div class="col-md-6">
-                    <p><strong>Status:</strong> 
-                        <span class="badge badge-{{ 'success' if analysis.analysis_status == 'completed' else 'danger' }}">
-                            {{ analysis.analysis_status|title }}
-                        </span>
-                    </p>
-                    <p><strong>Risk Score:</strong> 
-                        <span class="badge badge-{{ 'danger' if analysis.risk_score > 70 else 'warning' if analysis.risk_score > 30 else 'success' }}">
-                            {{ analysis.risk_score }}/100
-                        </span>
-                    </p>
-                    <p><strong>File Type:</strong> 
-                        {% if report %}
-                            {{ report.file_info.type }}
-                        {% else %}
-                            Unknown
-                        {% endif %}
-                    </p>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>File Information</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Filename:</strong> {{ analysis.filename }}</li>
+                            <li><strong>Uploaded:</strong> {{ analysis.upload_date.strftime('%b %d, %Y %H:%M') }}</li>
+                            <li><strong>Analyzed:</strong> {{ analysis.analysis_date.strftime('%b %d, %Y %H:%M') }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Security Overview</h5>
+                        <div class="risk-meter mb-2">
+                            <div class="risk-meter-fill risk-{{ 'critical' if analysis.risk_score > 70 else 'high' if analysis.risk_score > 40 else 'medium' if analysis.risk_score > 20 else 'low' }}"></div>
+                        </div>
+                        <p class="text-{{ 'danger' if analysis.risk_score > 70 else 'warning' if analysis.risk_score > 40 else 'success' }}">
+                            {{ 'Critical Risk' if analysis.risk_score > 70 else 'High Risk' if analysis.risk_score > 40 else 'Medium Risk' if analysis.risk_score > 20 else 'Low Risk' }}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="chart-container mb-4">
+                    <canvas id="vulnerabilityChart"></canvas>
+                </div>
+                
+                <h4 class="mb-3">Vulnerability Breakdown</h4>
+                <div class="row g-3">
+                    {% if report and report.vulnerabilities %}
+                        {% for vuln in report.vulnerabilities %}
+                        <div class="col-md-6">
+                            <div class="card card-dark vulnerability-item vulnerability-{{ vuln.severity }}">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start">
+                                        <div class="me-3 text-{{ 'danger' if vuln.severity == 'critical' else 'warning' if vuln.severity == 'high' else 'info' if vuln.severity == 'medium' else 'success' }}">
+                                            <i class="fas fa-{{ 'exclamation-triangle' if vuln.severity in ['critical','high'] else 'info-circle' }} fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-1">{{ vuln.component }}</h5>
+                                            <p class="mb-1">{{ vuln.issue }}</p>
+                                            {% if vuln.evidence %}
+                                            <p class="small text-muted mb-0"><strong>Evidence:</strong> {{ vuln.evidence|truncate(50) }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12">
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                No critical vulnerabilities detected.
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Vulnerabilities Card -->
-    <div class="card mb-4">
-        <div class="card-header bg-danger text-white">
-            <h5 class="mb-0">Identified Vulnerabilities</h5>
+    
+    <div class="col-lg-4">
+        <div class="card card-dark mb-4">
+            <div class="card-header">
+                <h3 class="mb-0">Security Checks</h3>
+            </div>
+            <div class="card-body">
+                {% if report and report.security_checks %}
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-transparent text-light border-dark d-flex justify-content-between align-items-center">
+                        Stack Protection
+                        <span class="badge bg-{{ 'success' if report.security_checks.stack_protection else 'danger' }}">
+                            {{ 'Enabled' if report.security_checks.stack_protection else 'Disabled' }}
+                        </span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-dark d-flex justify-content-between align-items-center">
+                        Executable Stack
+                        <span class="badge bg-{{ 'danger' if report.security_checks.executable_stack else 'success' }}">
+                            {{ 'Disabled' if not report.security_checks.executable_stack else 'Enabled' }}
+                        </span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-dark d-flex justify-content-between align-items-center">
+                        RELRO
+                        <span class="badge bg-{{ 'success' if report.security_checks.relro == 'full' else 'warning' if report.security_checks.relro == 'partial' else 'danger' }}">
+                            {{ report.security_checks.relro|title }}
+                        </span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-dark d-flex justify-content-between align-items-center">
+                        PIE
+                        <span class="badge bg-{{ 'success' if report.security_checks.pie == 'enabled' else 'danger' }}">
+                            {{ report.security_checks.pie|title }}
+                        </span>
+                    </li>
+                </ul>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Security check data not available.
+                </div>
+                {% endif %}
+            </div>
         </div>
-        <div class="card-body">
-            {% if report and report.vulnerabilities %}
+        
+        <div class="card card-dark mb-4">
+            <div class="card-header">
+                <h3 class="mb-0">Actions</h3>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('analysis.download_report', analysis_id=analysis.id) }}" class="btn btn-primary w-100 mb-3">
+                    <i class="fas fa-download me-2"></i>Download Full Report
+                </a>
+                <a href="{{ url_for('main.upload_file') }}" class="btn btn-outline-light w-100">
+                    <i class="fas fa-upload me-2"></i>Analyze Another File
+                </a>
+            </div>
+        </div>
+        
+        {% if report and report.binwalk and report.binwalk.signatures %}
+        <div class="card card-dark">
+            <div class="card-header">
+                <h3 class="mb-0">File Structure</h3>
+            </div>
+            <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="thead-dark">
+                    <table class="table table-dark table-sm">
+                        <thead>
                             <tr>
-                                <th>Component</th>
-                                <th>Vulnerability</th>
-                                <th>Severity</th>
+                                <th>Offset</th>
+                                <th>Type</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for vuln in report.vulnerabilities %}
+                            {% for sig in report.binwalk.signatures[:5] %}
                             <tr>
-                                <td>{{ vuln.get('component', 'Unknown') }}</td>
-                                <td>
-                                    {% if 'cve' in vuln %}
-                                        <a href="https://nvd.nist.gov/vuln/detail/{{ vuln.cve }}" target="_blank">
-                                            {{ vuln.cve }}
-                                        </a>
-                                    {% else %}
-                                        {{ vuln.get('issue', 'Potential issue') }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="badge badge-danger">High</span>
-                                </td>
+                                <td>{{ sig.offset }}</td>
+                                <td>{{ sig.type|truncate(20) }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-            {% else %}
-                <div class="alert alert-success">
-                    No critical vulnerabilities detected.
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Security Assessment Card -->
-    <div class="card mb-4">
-        <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0">Security Assessment</h5>
-        </div>
-        <div class="card-body">
-            {% if report and report.security_checks %}
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Memory Protections:</h6>
-                        <ul class="list-group">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Stack Canary
-                                <span class="badge badge-{{ 'success' if report.security_checks.stack_protection else 'danger' }}">
-                                    {{ 'Enabled' if report.security_checks.stack_protection else 'Disabled' }}
-                                </span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                NX (No-Execute)
-                                <span class="badge badge-{{ 'success' if not report.security_checks.executable_stack else 'danger' }}">
-                                    {{ 'Enabled' if not report.security_checks.executable_stack else 'Disabled' }}
-                                </span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                PIE (Position Independent Executable)
-                                <span class="badge badge-{{ 'success' if report.security_checks.pie == 'PIE enabled' else 'danger' }}">
-                                    {{ report.security_checks.pie }}
-                                </span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Other Protections:</h6>
-                        <ul class="list-group">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                RELRO
-                                <span class="badge badge-{{ 'success' if report.security_checks.relro == 'Full' else 'warning' if report.security_checks.relro == 'Partial' else 'danger' }}">
-                                    {{ report.security_checks.relro }}
-                                </span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Fortify Source
-                                <span class="badge badge-secondary">
-                                    {{ 'Not Implemented' }}
-                                </span>
-                            </li>
-                        </ul>
+                {% if report.binwalk.signatures|length > 5 %}
+                <a href="#fullBinwalk" data-bs-toggle="collapse" class="btn btn-sm btn-outline-light w-100 mt-2">
+                    Show All {{ report.binwalk.signatures|length }} Entries
+                </a>
+                <div id="fullBinwalk" class="collapse mt-3">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-sm">
+                            <tbody>
+                                {% for sig in report.binwalk.signatures[5:] %}
+                                <tr>
+                                    <td>{{ sig.offset }}</td>
+                                    <td>{{ sig.type|truncate(20) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            {% else %}
-                <div class="alert alert-warning">
-                    Security assessment data not available.
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Binwalk Findings Card -->
-    {% if report and report.binwalk and report.binwalk.signatures %}
-    <div class="card mb-4">
-        <div class="card-header bg-info text-white">
-            <h5 class="mb-0">File Structure Analysis</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>Offset</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for sig in report.binwalk.signatures[:10] %}
-                        <tr>
-                            <td>{{ sig.offset }}</td>
-                            <td>{{ sig.type }}</td>
-                            <td>{{ sig.description }}</td>
-                        </tr>
-                        {% endfor %}
-                        {% if report.binwalk.signatures|length > 10 %}
-                        <tr>
-                            <td colspan="3" class="text-center">
-                                <a href="#fullBinwalk" data-toggle="collapse">Show all {{ report.binwalk.signatures|length }} entries...</a>
-                            </td>
-                        </tr>
-                        <tr id="fullBinwalk" class="collapse">
-                            <td colspan="3">
-                                <table class="table table-sm">
-                                    {% for sig in report.binwalk.signatures[10:] %}
-                                    <tr>
-                                        <td>{{ sig.offset }}</td>
-                                        <td>{{ sig.type }}</td>
-                                        <td>{{ sig.description }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </table>
-                            </td>
-                        </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
+                {% endif %}
             </div>
         </div>
+        {% endif %}
     </div>
-    {% endif %}
-
-    <!-- Actions -->
-    <div class="text-center mt-4">
-        <a href="{{ url_for('analysis.download_report', analysis_id=analysis.id) }}" class="btn btn-primary">
-            <i class="fas fa-download"></i> Download Full Report
-        </a>
-        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
-    </div>
+</div>
 {% endblock %}
 
-{% block scripts %}
-{{ super() }}
+{% block extra_js %}
 <script>
-    // Add any custom JavaScript for the results page here
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('vulnerabilityChart').getContext('2d');
+    
+    // Count vulnerabilities by severity
+    const critical = {{ report.vulnerabilities|selectattr('severity', 'equalto', 'critical')|list|length if report and report.vulnerabilities else 0 }};
+    const high = {{ report.vulnerabilities|selectattr('severity', 'equalto', 'high')|list|length if report and report.vulnerabilities else 0 }};
+    const medium = {{ report.vulnerabilities|selectattr('severity', 'equalto', 'medium')|list|length if report and report.vulnerabilities else 0 }};
+    const low = {{ report.vulnerabilities|selectattr('severity', 'equalto', 'low')|list|length if report and report.vulnerabilities else 0 }};
+    const none = {{ 1 if not report or not report.vulnerabilities or report.vulnerabilities|length == 0 else 0 }};
+    
+    const chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Critical', 'High', 'Medium', 'Low', 'None'],
+            datasets: [{
+                data: [critical, high, medium, low, none],
+                backgroundColor: [
+                    '#dc3545',
+                    '#fd7e14',
+                    '#ffc107',
+                    '#198754',
+                    '#6c757d'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: '#e0e0e0'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += context.raw;
+                            return label;
+                        }
+                    }
+                }
+            },
+            cutout: '65%'
+        }
+    });
+});
 </script>
 {% endblock %}

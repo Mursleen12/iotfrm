@@ -1,0 +1,43 @@
+{
+  "binwalk": {
+    "output": "\nDECIMAL       HEXADECIMAL     DESCRIPTION\n--------------------------------------------------------------------------------\n54000         0xD2F0          U-Boot version string, \"U-Boot 1.1.3 (Jul  9 2020 - 09:09:22)\"\n66560         0x10400         LZMA compressed data, properties: 0x5D, dictionary size: 8388608 bytes, uncompressed size: 2986732 bytes\n1049088       0x100200        Squashfs filesystem, little endian, version 4.0, compression:xz, size: 3000256 bytes, 625 inodes, blocksize: 262144 bytes, created: 2020-07-09 01:17:32\n\n",
+    "signatures": [
+      {
+        "offset": "54000",
+        "type": "0xD2F0 U-Boot version string, \"U-Boot 1.1.3 (Jul 9 2020 -",
+        "description": "09:09:22)\""
+      },
+      {
+        "offset": "66560",
+        "type": "0x10400 LZMA compressed data, properties: 0x5D, dictionary size: 8388608 bytes, uncompressed size: 2986732",
+        "description": "bytes"
+      },
+      {
+        "offset": "1049088",
+        "type": "0x100200 Squashfs filesystem, little endian, version 4.0, compression:xz, size: 3000256 bytes, 625 inodes, blocksize: 262144 bytes, created: 2020-07-09",
+        "description": "01:17:32"
+      }
+    ]
+  },
+  "strings": {
+    "output": "ver. 2.0\n$'X`\n$$H*\n$$Xm\n$%Xm\n$$Xl\n\t$\"@\t\n<%PK\n<%PK\n$$PX\n$$Xx\n$%PX\n$%PX\n$%Xx\n$%PX\n$%Xx\n$$PA\n\t$\"@\t\n!4$@\n$$PA\n$$PA\n$$H*\n!4$p\n<$H!\nJ5$H*\n<%Xj\n<%PK\nk5$H+\n<%H-\nJ5$H*\nJ5$H*\n#$#& ##& $#* ##* $#. ##. $#2 ##2 4#6 3#6 3\n$##.\"\"#.\"##2\"\"#2\"##6\"\"#6\"##:\"\"#:\"C\n$!0s\ntc4%\n$!(U\ntB4t\nc$! d\n)1B`\n'!(b\nk1@(\n$!(T\n$! @\ne:e:\ne:eZ\n\tmdd\nL:e@\ne:e@\ng:e@\ne:e@\ng:e@\ng:e@\ne:e@\ne:ef\nZB$@xB$x\nc$E\"\n<! D\n<! D\n<@BB$\n:eDd\n:ebg\n8evd\n:eDd\nlCgb3\nCgb3\nZDd \nn:e@\nA8e@\n`2b3m\n`2b3m\nR\t`j\nM`2b3m\nr\t`0\nrO``\nK;e@\ne:e@\ne\\g \n@6B2M\n@rDaC\n:e{d\nd<g@\ne\\g@\ne#``\n8eud\n`4b3\n<gdg\ng:e@\ng:e@\n7\\gl\n:eed\ne 4\"g\n8efd\ne8e@\neZg@\na|g@\n`\ts3a\ng:e@\n9ewd\n`2b3m\n`2b3m\n@2D2i\neT`@\n@6B2M\n`2b3m\nM:e@\n8eyd\n8exd\n5:e[\n8evd\n+ep3m\n<g\tr\n9evd\n9evd\n:eDd\nm8n@\nJ?Lb\n\"8gb\n@2`3\nn:e@\n:eDd\n:eDd\nmJn@\nm[N@\nm3n@\n8edd\n(+P?\ne-%@\nrD`S\nS+`\tr\n9evd\nB2B2@\n8evd\nM:e@\n:ebg\nn:e@\n:ebg\nn:e@\n:e\"g\ng:e@\nkxd \neXgp5M\nB3b3b\n&]g \n8exd\n:eEd\n:eEd\ng:e@\ng8e@\nIe*eY\ngIgL\n@4HgM\nXgL2\ne]g \n1}g@2 1M\nKMe.e\n`nebg\nCgxd\njk-y\n8en*\ne|g \ne|g \ne|g \ng:e@\ng:e@\n:e\"g\neW* \nQgwd\n`fg\\g\nL<e@\ne5**\n o:e@\nPgyd\nM:e@\n:ebg\nEa'\\p\n(pE`{pC`$j\nIdg?\n`}p7a\nPg/e\n s_`\ts\ne\t*\\g\nPgwd\n|g$g\n\\'`F\n`\\g@\n`\\g@\n`\\g@\n:eDd\n`\\g@\n:eDd\n:eDd\n:eDd\n:eDd\n:eDd\n*ZgC\n\"gQgud\nkZgc\nl8e@\nezgA\nawd \n:eDd \ngZge\nm4n@\n:eDd \n\\g*e\niQg(g,\n:eDd\n+gBE\nLF`a\n\"2F4\n`:48L\n`R4nL\n`^4wL\n\"4|L\nej#a\n`n3k7\n`z58M\n7wO/e\t\n]~m-e\nb5|M-e\njeJe,e\n\ta|g@\n3a3\"\n&G@\tJ\nhPgwd\njfa\t[\ne)`/Ck\n?eG@\n:eDd\n:eDd\n:ebg\nMe\t`a\na'G\tI\"\nkkeCg\nk)gl\n-ea\"jgj\n%^gA\n`GA\tJ\nN%^*`\n@\tJ\tL\nKxd \neCD|g\neZgg\neZgg\nLqn@\n8l:e@\nK8r`\n:ebg\n9eud\no\t` \ng:e@\neTSIL\n:eDd\ndmdH\ndmdH\n:eDd\n:e=r\t\ne\t`\t\ng;e=\ng:e@\ne 4\"g\n:eDd\n:eFd\n:epg\n:e$g@\nM n@\n8eyd \nC m:e\ns8`+\ng:e@\ngzd \nFgZgF\nbootcmd=tftp\nbootdelay=1\nbaudrate=115200\nethaddr=\"00:0A:EB:13:09:69\"\nipaddr=192.168.0.2\nserverip=192.168.0.225\nHH2\t\neB4Hg\neB4Xg\nLeB4Jg\n,eB4Ig\neB4Hg\neB4Xg\nOheKg\n2L2U\n:eDd \n8evd\n`hg \noGg1d \nedgDg\ndgDg\nedgDg\nedgDg\ng:e@\n|g$g\n;ePgvd\ngeg \nPgvd\n \\g \nPgud\nedgDg\neegEg\nedgDg\ndDgdg\ng:e@\nhPgvd\nNF#Z\n\"0iIe\nje\t\"\n(g m\nM\te-e)g\n]8g+\na0k`\n[xgk\n[xgk\n[xgk\na|g \n-r\\g\n:eDd\niaE@\n*r\ta\n.r a\n`cu#`dU\nsu%`tU\n`pu\\`{\nn~`s\ng\\g \n:eEd\ne:e@\n:e 1M\ngeg%g\naQgwd\n<gdg\njD0@\navd \naPgvd \nh|g@\ng\\2`\nkG6L\ng:e@\n2JeI\neKg\teH2\n:eDd\n:eDd \ne`\\\\g\nj \\D\nm,l@\nm)l@\ne8e,l@\nmvd \n`\\|gDg\nk \\d\n:eDd \n:eDd\n$$ d\n$$ d\ne:e@\ng@n@\ne\\g|g\ne\\g|g\nC\"m@\ng\"m@\ne|g\\g\n;e|d\neU-Boot 1.1.3 (Jul  9 2020 - 09:09:22)\nraspi_read_devid\nbbu_spic_trans\nbbu_spic_busy_wait\nraspi_unprotect\nraspi_wait_ready\nraspi_4byte_mode\nraspi_read\nbbu_mb_spic_trans\ndiff_dly=%d\noverwrite %x\n[%02X%02X%02X%02X]\n[%04X%02X%02X][%08X][00%04X%02X]\nDU Setting Cal Done\nDRAM:  \n*** failed ***\nrelocate_code Pointer at: %08lx\nPlease choose the operation: \n   %d: Load system code to SDRAM via TFTP. \n   %d: Load system code then write to Flash via TFTP. \n   %d: Boot system code via Flash (default).\n   %d: Load Boot Loader code then write to Flash via TFTP. \n0x80200000\n0x80100000\n Please Input new ones /or Ctrl-C to discard\n\tInput device IP \nipaddr\n(%s) \n\tInput server IP \nserverip\n\tInput Uboot filename \nuboot.bin\n\tInput Linux Kernel filename \nuImage\n0x80A00000\nbootfile\n### ERROR ### Please RESET the board ###\nWatchdog Reset Occurred\n******************************\nSoftware System Reset Occurred\n***************************\nSoftware CPU Reset Occurred\nra_spi_init fail\nethaddr\nloadaddr\n============================================ \nRalink UBoot Version: %s\n4.3.0.0\n-------------------------------------------- \n%s %s %s\nASIC\n7628_MP\n(Port5<->None)\nDRAM component: %d Mbits %s\nDDR, width 16\nDRAM bus: %d bit\nTotal memory: %d MBytes\nFlash component: SPI Flash\nDate:Jul  9 2020  Time:09:09:22\nicache: sets:%d, ways:%d, linesz:%d ,total:%d\ndcache: sets:%d, ways:%d, linesz:%d ,total:%d \n ##### The CPU freq = %d MHZ #### \n estimate memory size =%d Mbytes\nbootdelay\ncontinue to starting system.\n%2d \n0x%X\n3: System Boot system code via Flash.(0x%x)\nswitch BootType:\n%d: System Enter Boot Command Line Interface.\ndefault: System Boot system code via Flash.(0x%x)\nstarting recovery...\nset serverip 192.168.0.66\ntftp 0x80060000 tp_recovery.bin;erase tplink 0x10000 0x3d0000;cp.b 0x80070000 0x10000 0x3d0000\nreset\nnetretry\nonce\n en[%d] < ETHER_HDR_SIZE\nbad length %d < %d\n ntohs(arp->ar_hrd) != ARP_ETHER\n ntohs(arp->ar_pro) != PROT_IP\n arp->ar_hln != 6 \n arp->ar_pln != 4 \n NetOurIP \nGot ARP REQUEST, return our IP\nGot ARP REPLY, set server/gtwy eth addr (%02x:%02x:%02x:%02x:%02x:%02x)\nGot it\ninvalid RARP header\nlen bad %d < %d\nchecksum bad\n## Warning: gatewayip needed but not set\nARP Retry count exceeded; starting again\nArpTimeoutCheck \n%d.%d.%d.%d\n NetTxPacket = 0x%08X \n Packet Buffer is empty ! \n KSEG1ADDR(NetTxPacket) = 0x%08X \n NetLoop,call eth_halt ! \n NetLoop,call eth_init ! \n eth_init is fail !!\ngatewayip\nnetmask\n*** ERROR: `serverip' not set\n*** ERROR: `ipaddr' not set\n*** ERROR: `ethaddr' not set\nAbort\nBytes transferred = %ld (%lx hex)\nfilesize\nfileaddr\noctet\ntimeout\nFile too large\nFile has bad magic\n\t %lu MB reveived\nTFTP error: First block is not block 1 (%ld)\nStarting again\n Same block again; ignore it \ndone\nTFTP error: '%s' (%d)\nStarting again\nRetry count exceeded; starting again\ntest.bin\n*** Warning: no boot file name; using '%s'\nTFTP from server",
+    "interesting_strings": [
+      "rootpath",
+      "*key",
+      "8(>KEy",
+      "}KeY"
+    ]
+  },
+  "file_info": {
+    "type": "data",
+    "size": 4063744
+  },
+  "vulnerabilities": [],
+  "security_checks": {
+    "executable_stack": false,
+    "stack_protection": false,
+    "relro": "none",
+    "pie": "none"
+  },
+  "risk_score": 40
+}

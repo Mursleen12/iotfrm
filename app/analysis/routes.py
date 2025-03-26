@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, send_from_directory
+from flask import render_template, flash, redirect, url_for, send_from_directory, current_app
 from flask_login import current_user, login_required
 from app import db
 from app.analysis import bp
@@ -221,76 +221,104 @@ def calculate_risk_score(results):
 def analyze(analysis_id):
     analysis = FirmwareAnalysis.query.get_or_404(analysis_id)
     if analysis.author != current_user:
-        flash('You do not have permission to view this analysis.')
+        flash('Permission denied', 'error')
         return redirect(url_for('main.index'))
-    
-    try:
-        # Set analysis status to processing
-        analysis.analysis_status = 'processing'
-        analysis.analysis_date = datetime.utcnow()
-        db.session.commit()
-        
-        # Run comprehensive security analysis
-        analysis_results = run_security_analysis(analysis.filepath)
-        
-        # Generate report file
-        report_filename = f'report_{analysis.id}.json'
-        report_path = os.path.join(Config.ANALYSIS_FOLDER, report_filename)
-        
-        with open(report_path, 'w') as f:
-            json.dump(analysis_results, f, indent=2)
-        
-        # Update analysis record
-        analysis.analysis_status = 'completed'
-        analysis.report_path = report_path
-        analysis.findings = json.dumps(analysis_results['vulnerabilities'])
-        analysis.risk_score = analysis_results['risk_score']
-        analysis.analysis_details = json.dumps({
-            'binwalk': analysis_results['binwalk'],
-            'security_checks': analysis_results['security_checks']
-        })
-        db.session.commit()
-        
+
+    # If already completed, show results
+    if analysis.analysis_status == 'completed':
         return redirect(url_for('analysis.results', analysis_id=analysis.id))
-    
-    except subprocess.CalledProcessError as e:
-        analysis.analysis_status = 'failed'
-        analysis.findings = f"Analysis failed: {str(e.output.decode('utf-8'))}"
-        db.session.commit()
-        flash('Analysis failed due to a processing error.')
+
+    # If failed, return to status page
+    if analysis.analysis_status == 'failed':
         return redirect(url_for('analysis.status', analysis_id=analysis.id))
-    except Exception as e:
-        analysis.analysis_status = 'failed'
-        analysis.findings = f"Unexpected error: {str(e)}"
-        db.session.commit()
-        flash('An unexpected error occurred during analysis.')
-        return redirect(url_for('analysis.status', analysis_id=analysis.id))
+
+    # Start processing if pending
+    if analysis.analysis_status == 'pending':
+        try:
+            # Set status to processing
+            analysis.analysis_status = 'processing'
+            analysis.analysis_date = datetime.utcnow()
+            db.session.commit()
+
+            # Perform analysis
+            results = run_security_analysis(analysis.filepath)
+
+            # Ensure analysis directory exists
+            os.makedirs(Config.ANALYSIS_FOLDER, exist_ok=True)
+
+            # Save results
+            report_filename = f'report_{analysis.id}.json'
+            report_path = os.path.join(Config.ANALYSIS_FOLDER, report_filename)
+            
+            with open(report_path, 'w') as f:
+                json.dump(results, f, indent=2)
+
+            # Update analysis record
+            analysis.analysis_status = 'completed'
+            analysis.report_path = report_path
+            analysis.findings = json.dumps(results.get('vulnerabilities', []))
+            analysis.risk_score = results.get('risk_score', 0)
+            db.session.commit()
+
+            return redirect(url_for('analysis.results', analysis_id=analysis.id))
+
+        except Exception as e:
+            current_app.logger.error(f"Analysis failed: {str(e)}", exc_info=True)
+            analysis.analysis_status = 'failed'
+            analysis.findings = str(e)
+            db.session.commit()
+            return redirect(url_for('analysis.status', analysis_id=analysis.id))
+
+    # If already processing, show status
+    return redirect(url_for('analysis.status', analysis_id=analysis.id))
 
 @bp.route('/results/<int:analysis_id>')
 @login_required
 def results(analysis_id):
     analysis = FirmwareAnalysis.query.get_or_404(analysis_id)
     if analysis.author != current_user:
-        flash('You do not have permission to view this analysis.')
+        flash('You do not have permission to view this analysis.', 'error')
         return redirect(url_for('main.index'))
     
     if analysis.analysis_status != 'completed':
-        flash('Analysis not yet completed.')
+        flash('Analysis not yet completed.', 'warning')
         return redirect(url_for('analysis.status', analysis_id=analysis.id))
     
-    # Load the detailed report
-    report_data = None
-    if analysis.report_path and os.path.exists(analysis.report_path):
-        with open(analysis.report_path, 'r') as f:
-            report_data = json.load(f)
-    if 'file_info' in report_data and 'metadata' not in report_data:
-            report_data['metadata'] = {
-                'file_type': report_data['file_info'].get('type', 'Unknown'),
-                'file_size': report_data['file_info'].get('size', 0)}
+    # Initialize report data with default empty structure
+    report = {
+        'file_info': {'type': 'Unknown', 'size': 0},
+        'vulnerabilities': [],
+        'security_checks': {},
+        'binwalk': {},
+        'strings': {}
+    }
     
-    return render_template('analysis/results.html', 
-                        analysis=analysis,
-                        report=report_data)
+    if analysis.report_path and os.path.exists(analysis.report_path):
+        try:
+            with open(analysis.report_path, 'r') as f:
+                report = json.load(f)
+        except (IOError, json.JSONDecodeError) as e:
+            current_app.logger.error(f"Failed to load report: {str(e)}")
+            flash('Could not load analysis report.', 'error')
+    
+    # Initialize severities count
+    severities = {
+        'critical': 0,
+        'high': 0,
+        'medium': 0,
+        'low': 0
+    }
+    
+    # Count vulnerabilities
+    for finding in report.get('vulnerabilities', []):
+        severity = finding.get('severity', '').lower()
+        if severity in severities:
+            severities[severity] += 1
+    
+    return render_template('analysis/results.html',
+                         analysis=analysis,
+                         report=report,
+                         severities=severities)
 
 @bp.route('/download_report/<int:analysis_id>')
 @login_required
@@ -311,11 +339,24 @@ def download_report(analysis_id):
         mimetype='application/json'
     )
 
+
 @bp.route('/status/<int:analysis_id>')
 @login_required
 def status(analysis_id):
     analysis = FirmwareAnalysis.query.get_or_404(analysis_id)
     if analysis.author != current_user:
-        flash('You do not have permission to view this analysis.')
+        flash('You do not have permission to view this analysis.', 'error')
         return redirect(url_for('main.index'))
-    return render_template('analysis/status.html', analysis=analysis)
+    
+    # Calculate progress percentage based on status
+    status_mapping = {
+        'pending': 10,
+        'processing': 50,
+        'completed': 100,
+        'failed': 100
+    }
+    progress = status_mapping.get(analysis.analysis_status, 0)
+    
+    return render_template('analysis/status.html', 
+                         analysis=analysis,
+                         progress=progress)

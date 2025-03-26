@@ -1,22 +1,172 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<style>
+    .file-info-card {
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <h1>Upload Firmware</h1>
-    <div class="row">
-        <div class="col-md-6">
-            <form method="POST" enctype="multipart/form-data">
-                {{ form.hidden_tag() }}
-                <div class="form-group">
-                    {{ form.firmware.label() }}
-                    {{ form.firmware(class="form-control-file") }}
-                    {% if form.firmware.errors %}
-                        {% for error in form.firmware.errors %}
-                            <div class="invalid-feedback d-block">{{ error }}</div>
-                        {% endfor %}
-                    {% endif %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-dark mb-4">
+            <div class="card-header">
+                <h3 class="mb-0">Upload Firmware</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="upload-area mb-4" id="dropArea">
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
+                        <h4>Drag & Drop Your Firmware File</h4>
+                        <p class="text-muted mb-3">or</p>
+                        <label for="firmware" class="btn btn-primary">
+                            Select File
+                            {{ form.firmware(id="firmware", style="display: none;") }}
+                        </label>
+                        <p class="text-muted mt-3 mb-0">Supports: .bin, .hex, .elf, .img, .zip</p>
+                    </div>
+                    
+                    <div id="fileInfo" class="file-info-card card card-dark mb-4" style="display: none;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 id="fileName" class="mb-1"></h5>
+                                    <p id="fileSize" class="text-muted small mb-0"></p>
+                                </div>
+                                <button type="button" id="clearFile" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                            <i class="fas fa-search me-2"></i> Analyze Firmware
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card card-dark">
+            <div class="card-header">
+                <h3 class="mb-0">How It Works</h3>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-upload fa-2x text-primary"></i>
+                            </div>
+                            <h5>1. Upload</h5>
+                            <p class="text-muted small">Upload your firmware file in any supported format</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-cogs fa-2x text-primary"></i>
+                            </div>
+                            <h5>2. Analyze</h5>
+                            <p class="text-muted small">Our system performs deep static analysis using multiple tools</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-file-alt fa-2x text-primary"></i>
+                            </div>
+                            <h5>3. Results</h5>
+                            <p class="text-muted small">Get detailed security report with actionable insights</p>
+                        </div>
+                    </div>
                 </div>
-                {{ form.submit(class="btn btn-primary") }}
-            </form>
+            </div>
         </div>
     </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('firmware');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const clearFile = document.getElementById('clearFile');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Handle drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        dropArea.classList.add('active');
+    }
+    
+    function unhighlight() {
+        dropArea.classList.remove('active');
+    }
+    
+    dropArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+    
+    // Handle file selection
+    fileInput.addEventListener('change', function() {
+        handleFiles(this.files);
+    });
+    
+    // Clear file selection
+    clearFile.addEventListener('click', function() {
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        submitBtn.disabled = true;
+    });
+    
+    function handleFiles(files) {
+        if (files.length) {
+            const file = files[0];
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.style.display = 'block';
+            submitBtn.disabled = false;
+        }
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+});
+</script>
 {% endblock %}

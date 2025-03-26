@@ -30,9 +30,10 @@ class FirmwareAnalysis(db.Model):
     report_path = db.Column(db.String(256))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     findings = db.Column(db.Text)
-    risk_score = db.Column(db.Integer)
+    risk_score = db.Column(db.Integer, default=0)
     analysis_date = db.Column(db.DateTime)
     analysis_details = db.Column(db.Text) 
+    upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     def __repr__(self):
         return f'<FirmwareAnalysis {self.filename}>'
 

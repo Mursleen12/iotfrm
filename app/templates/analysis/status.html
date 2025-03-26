@@ -1,35 +1,50 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Analysis Status</h1>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">{{ analysis.filename }}</h5>
-            <p class="card-text">
-                Status: <span class="badge badge-{{ 'success' if analysis.analysis_status == 'completed' else 'warning' if analysis.analysis_status == 'processing' else 'danger' }}">
-                    {{ analysis.analysis_status }}
-                </span>
-            </p>
-            <p class="card-text">Uploaded: {{ analysis.upload_date.strftime('%Y-%m-%d %H:%M') }}</p>
-            
-            {% if analysis.analysis_status == 'completed' %}
-                <a href="{{ url_for('analysis.results', analysis_id=analysis.id) }}" class="btn btn-primary">View Results</a>
-            {% elif analysis.analysis_status == 'failed' %}
-                <div class="alert alert-danger">
-                    {% if analysis.findings %}
-                        {{ analysis.findings }}
-                    {% else %}
-                        Analysis failed. Please try again.
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-dark mb-4">
+            <div class="card-header">
+                <h3 class="mb-0">Analysis Status</h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-{{ 'check-circle text-success' if analysis.analysis_status == 'completed' else 'spinner fa-spin text-primary' if analysis.analysis_status == 'processing' else 'times-circle text-danger' }} fa-5x mb-4"></i>
+                    <h4 class="mb-3">
+                        {% if analysis.analysis_status == 'completed' %}
+                        Analysis Complete!
+                        {% elif analysis.analysis_status == 'processing' %}
+                        Analyzing Firmware...
+                        {% else %}
+                        Analysis Failed
+                        {% endif %}
+                    </h4>
+                    <p class="text-muted mb-4">{{ analysis.filename }}</p>
+                    
+                    {% if analysis.analysis_status == 'processing' %}
+                    <div class="progress analysis-progress mb-4">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 75%"></div>
+                    </div>
+                    <p class="text-muted">This may take a few minutes depending on file size</p>
+                    <meta http-equiv="refresh" content="5">
+                    {% elif analysis.analysis_status == 'failed' %}
+                    <div class="alert alert-danger">
+                        <p class="mb-0">{{ analysis.findings }}</p>
+                    </div>
                     {% endif %}
                 </div>
-                <a href="{{ url_for('main.upload_file') }}" class="btn btn-warning">Try Again</a>
-            {% else %}
-                <div class="spinner-border text-primary" role="status">
-                    <span class="sr-only">Loading...</span>
-                </div>
-                <p>Analysis in progress...</p>
-                <meta http-equiv="refresh" content="5">
-            {% endif %}
+                
+                {% if analysis.analysis_status == 'completed' %}
+                <a href="{{ url_for('analysis.results', analysis_id=analysis.id) }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-chart-bar me-2"></i>View Results
+                </a>
+                {% elif analysis.analysis_status == 'failed' %}
+                <a href="{{ url_for('main.upload_file') }}" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>Try Again
+                </a>
+                {% endif %}
+            </div>
         </div>
     </div>
+</div>
 {% endblock %}

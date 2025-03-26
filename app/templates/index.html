@@ -1,43 +1,284 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="jumbotron">
-        <h1 class="display-4">IoT Firmware Analysis Tool</h1>
-        <p class="lead">Upload and analyze firmware images for security vulnerabilities.</p>
-        <hr class="my-4">
-        {% if current_user.is_authenticated %}
-            <p>Welcome back, {{ current_user.full_name or current_user.username }}!</p>
-            <a class="btn btn-primary btn-lg" href="{{ url_for('main.upload_file') }}" role="button">Upload Firmware</a>
-            
-            <h3 class="mt-5">Your Recent Analyses</h3>
-            {% if analyses %}
-                <div class="list-group">
-                    {% for analysis in analyses %}
-                    <a href="{{ url_for('analysis.results', analysis_id=analysis.id) }}" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">{{ analysis.filename }}</h5>
-                            <small>{{ analysis.upload_date.strftime('%Y-%m-%d %H:%M') }}</small>
-                        </div>
-                        <p class="mb-1">
-                            Status: <span class="badge badge-{{ 'success' if analysis.analysis_status == 'completed' else 'warning' if analysis.analysis_status == 'pending' else 'danger' }}">
-                                {{ analysis.analysis_status }}
-                            </span>
-                            {% if analysis.risk_score %}
-                                | Risk Score: <span class="badge badge-{{ 'danger' if analysis.risk_score > 70 else 'warning' if analysis.risk_score > 30 else 'success' }}">
-                                    {{ analysis.risk_score }}
-                                </span>
-                            {% endif %}
-                        </p>
-                    </a>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p>You haven't uploaded any firmware yet.</p>
-            {% endif %}
-        {% else %}
-            <p>Please login or sign up to analyze firmware images.</p>
-            <a class="btn btn-primary btn-lg mr-2" href="{{ url_for('auth.login') }}" role="button">Login</a>
-            <a class="btn btn-secondary btn-lg" href="{{ url_for('auth.signup') }}" role="button">Sign Up</a>
-        {% endif %}
+{% if current_user.is_authenticated %}
+    {# DASHBOARD CONTENT FOR LOGGED-IN USERS #}
+    <div class="dashboard-header mb-4">
+        <h1>Welcome back, {{ current_user.username }}!</h1>
+        <p class="text-muted">Your firmware analysis dashboard</p>
     </div>
+
+    <div class="row">
+        {# Summary Cards #}
+        <div class="col-md-4">
+            <div class="card card-dark mb-4">
+                <div class="card-body text-center">
+                    <div class="dashboard-icon bg-primary bg-opacity-10">
+                        <i class="fas fa-file-alt text-primary"></i>
+                    </div>
+                    <h3 class="my-2">{{ analyses|length }}</h3>
+                    <p class="text-muted mb-0">Total Analyses</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card card-dark mb-4">
+                <div class="card-body text-center">
+                    <div class="dashboard-icon bg-success bg-opacity-10">
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                    <h3 class="my-2">{{ analyses|selectattr('risk_score', '!=', None)|selectattr('risk_score', '<=', 40)|list|length }}</h3>
+                    <p class="text-muted mb-0">Secure Files</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card card-dark mb-4">
+                <div class="card-body text-center">
+                    <div class="dashboard-icon bg-danger bg-opacity-10">
+                        <i class="fas fa-exclamation-triangle text-danger"></i>
+                    </div>
+                    <h3 class="my-2">{{ analyses|selectattr('risk_score', '>', 70)|list|length }}</h3>
+                    <p class="text-muted mb-0">Critical Risks</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Recent Analyses Table #}
+    <div class="card card-dark mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">Recent Analyses</h3>
+                <a href="{{ url_for('main.upload_file') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i> New Analysis
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if analyses %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Risk Score</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for analysis in analyses[:5] %}
+                        <tr>
+                            <td>{{ analysis.filename|truncate(20) }}</td>
+                            <td>{{ analysis.upload_date.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if analysis.analysis_status == 'completed' else 'warning' if analysis.analysis_status == 'processing' else 'danger' }}">
+                                    {{ analysis.analysis_status|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="risk-meter me-2" style="width: 100px;">
+                                        <div class="risk-meter-fill risk-{{ 'critical' if analysis.risk_score > 70 else 'high' if analysis.risk_score > 40 else 'medium' if analysis.risk_score > 20 else 'low' }}"></div>
+                                    </div>
+                                    <span>{{ analysis.risk_score }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('analysis.results', analysis_id=analysis.id) }}" class="btn btn-sm btn-outline-light">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if analyses|length > 5 %}
+            <div class="text-center mt-3">
+                <a href="#" class="btn btn-outline-light">View All</a>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                <h4>No Analyses Yet</h4>
+                <p class="text-muted">Upload your first firmware file to get started</p>
+                <a href="{{ url_for('main.upload_file') }}" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>Upload Firmware
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Charts Section #}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card card-dark mb-4 h-100">
+                <div class="card-header">
+                    <h3 class="mb-0">Risk Distribution</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card card-dark mb-4 h-100">
+                <div class="card-header">
+                    <h3 class="mb-0">Recent Vulnerabilities</h3>
+                </div>
+                <div class="card-body">
+                    {% if analyses and analyses[0].findings %}
+                    <ul class="list-group list-group-flush">
+                        {% for finding in analyses[0].findings[:3] %}
+                        <li class="list-group-item bg-transparent text-light border-dark">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-{{ 'danger' if finding.severity == 'critical' else 'warning' if finding.severity == 'high' else 'info' }} me-2">
+                                    {{ finding.severity|title }}
+                                </span>
+                                {{ finding.component|truncate(20) }}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <p class="text-muted">No recent vulnerabilities found</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    {# PUBLIC LANDING PAGE FOR NON-LOGGED-IN USERS #}
+    <section class="hero-section text-center py-5 mb-4">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-4">Secure Your IoT Firmware</h1>
+            <p class="lead mb-5">Comprehensive security analysis for your IoT devices. Detect vulnerabilities before they become threats.</p>
+            <a href="{{ url_for('auth.signup') }}" class="btn btn-primary btn-lg px-4 me-2">
+                Get Started
+            </a>
+            <a href="{{ url_for('main.how_it_works') }}" class="btn btn-outline-light btn-lg px-4">
+                Learn More
+            </a>
+        </div>
+    </section>
+
+    <section class="features-section mb-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Why Choose IoT FirmGuard?</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card card-dark feature-card p-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Comprehensive Analysis</h3>
+                        <p>Detect vulnerabilities, insecure configurations, and potential backdoors in your firmware.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-dark feature-card p-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Fast Processing</h3>
+                        <p>Get detailed security reports in minutes, not days.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-dark feature-card p-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Actionable Insights</h3>
+                        <p>Clear recommendations to fix identified security issues.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section py-5 bg-dark">
+        <div class="container text-center">
+            <h2 class="mb-4">Ready to Secure Your Firmware?</h2>
+            <p class="lead mb-4">Sign up now and get your first analysis for free.</p>
+            <a href="{{ url_for('auth.signup') }}" class="btn btn-primary btn-lg px-4">
+                Create Free Account
+            </a>
+        </div>
+    </section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if current_user.is_authenticated %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Risk Distribution Chart
+    const riskCtx = document.getElementById('riskChart').getContext('2d');
+    const riskChart = new Chart(riskCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Critical', 'High', 'Medium', 'Low'],
+            datasets: [{
+                label: 'Vulnerabilities',
+                data: [
+                    {{ analyses|selectattr('risk_score', '>', 70)|list|length }},
+                    {{ analyses|selectattr('risk_score', '<=', 70)|selectattr('risk_score', '>', 40)|list|length }},
+                    {{ analyses|selectattr('risk_score', '<=', 40)|selectattr('risk_score', '>', 20)|list|length }},
+                    {{ analyses|selectattr('risk_score', '<=', 20)|list|length }}
+                ],
+                backgroundColor: [
+                    '#dc3545',
+                    '#fd7e14',
+                    '#ffc107',
+                    '#198754'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: '#e0e0e0'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#e0e0e0'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
 {% endblock %}
