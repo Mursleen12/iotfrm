@@ -2,11 +2,13 @@
 from flask import Flask
 from config import Config
 from flask_migrate import Migrate 
+from app.main.routes import main
 from app import create_app
 app = create_app()
 migrate = Migrate()
 
 app = Flask(__name__)
+app.register_blueprint(main) 
 app.config.from_object(Config)
 
 from app.extensions import db, login_manager
